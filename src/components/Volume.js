@@ -3,24 +3,28 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDragging } from "../hooks/useDragging";
 
 const Volume = (props) => {
-  const { direction } = props;
+  const { direction ,changeVolume,defaultVolumeValue} = props;
   const knobRef = useRef(null);
   const trackRef = useRef(null);
   const [volumeState, setVolumeState] = useState({
     knobPosition: 0,
-    volume: 0,
     isDragging: false,
   });
-  useEffect(() => {
-    console.log(volumeState);
-  }, [volumeState]);
+useEffect(() => {
+  const  volume = defaultVolumeValue.current.volume * 100
+  const perToPixels =
+          (volume / 100) * trackRef.current.clientWidth;
+  setVolumeState((prevState)=>({
+    ...prevState,
+    knobPosition:perToPixels - 10
+  }))
+
+}, [])
 
   const setNewVolume = useCallback(
     (e) => {
       if (direction === "horizontal") {
         const total = e.clientX - trackRef.current.getBoundingClientRect().left;
-        console.log("🚀 ~ file: Volume.js:20 ~ setNewVolume ~ total:", total);
-
         // Calculate the new volume as a percentage of the track width
         const percentage = (total / trackRef.current.clientWidth) * 100;
 
@@ -30,12 +34,12 @@ const Volume = (props) => {
         // Calculate the new volume in pixels
         const perToPixels =
           (newPercentage / 100) * trackRef.current.clientWidth;
-
+        //minus 10 will keep volume knob on the center when you drag it
         setVolumeState((prevState) => ({
           ...prevState,
-          knobPosition: perToPixels - 10,
-          volume: newPercentage,
+          knobPosition: perToPixels - 10
         }));
+        changeVolume(newPercentage)
       } else {
         const total = e.clientY - trackRef.current.getBoundingClientRect().top;
 
@@ -50,12 +54,13 @@ const Volume = (props) => {
 
         setVolumeState((prevState) => ({
           ...prevState,
-          knobPosition: newVolume - 5,
-          volume: newPercentage,
+          knobPosition: newVolume - 5
+        
         }));
+        changeVolume(newPercentage)
       }
     },
-    [direction]
+    [changeVolume, direction]
   );
 
   const handleDragStart = (event) => {
