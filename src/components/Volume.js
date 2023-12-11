@@ -3,64 +3,69 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDragging } from "../hooks/useDragging";
 
 const Volume = (props) => {
-  const { direction ,changeVolume,defaultVolumeValue} = props;
+  const { direction, changeVolume, currentVolume } = props;
   const knobRef = useRef(null);
   const trackRef = useRef(null);
+  const VERTICAL_OFFSET = 5;
+  const HORIZONTAL_OFFSET = 10;
   const [volumeState, setVolumeState] = useState({
     knobPosition: 0,
     isDragging: false,
   });
-useEffect(() => {
-  const  volume = defaultVolumeValue.current.volume * 100
-  const perToPixels =
-          (volume / 100) * trackRef.current.clientWidth;
-  setVolumeState((prevState)=>({
-    ...prevState,
-    knobPosition:perToPixels - 10
-  }))
+ 
 
-}, [])
+  useEffect(() => {
+    //VERTICAL
+    const perToPixels = currentVolume.current.volume * trackRef.current.clientY;
+   
+    //HORIZONTAL
+    // const  volume = currentVolume.current.volume * 100
+    // const perToPixels =
+    //         (volume / 100) * trackRef.current.clientWidth;
+    setKnobPosition(perToPixels - 5);
+  }, []);
 
-  const setNewVolume = useCallback(
+  const setKnobPosition = useCallback(
+    (position) => {
+      let newPosition;
+      if (direction === "horizontal") {
+        newPosition = position - HORIZONTAL_OFFSET;
+      } else {
+        newPosition = position - VERTICAL_OFFSET;
+      }
+      setVolumeState((prevState) => ({
+        ...prevState,
+        knobPosition: newPosition,
+      }));
+    },
+    [direction]
+  );
+
+  const calculateVolume = useCallback(
     (e) => {
+      let newPercentage;
+
       if (direction === "horizontal") {
         const total = e.clientX - trackRef.current.getBoundingClientRect().left;
-        // Calculate the new volume as a percentage of the track width
         const percentage = (total / trackRef.current.clientWidth) * 100;
-
-        // Ensure the percentage is within the 0 - 100 range
-        const newPercentage = Math.min(100, Math.max(0, percentage));
-
-        // Calculate the new volume in pixels
+        newPercentage = Math.min(100, Math.max(0, percentage));
         const perToPixels =
           (newPercentage / 100) * trackRef.current.clientWidth;
-        //minus 10 will keep volume knob on the center when you drag it
-        setVolumeState((prevState) => ({
-          ...prevState,
-          knobPosition: perToPixels - 10
-        }));
-        changeVolume(newPercentage)
+        setKnobPosition(perToPixels);
       } else {
-        const total = e.clientY - trackRef.current.getBoundingClientRect().top;
-
-        // Calculate the new volume as a percentage of the track height
-        const percentage = (total / trackRef.current.clientHeight) * 100;
-
-        // Ensure the percentage is within the 0 - 100 range
-        const newPercentage = Math.min(100, Math.max(0, percentage));
-
-        // Calculate the new volume in pixels
-        const newVolume = (newPercentage / 100) * trackRef.current.clientHeight;
-
-        setVolumeState((prevState) => ({
-          ...prevState,
-          knobPosition: newVolume - 5
-        
-        }));
-        changeVolume(newPercentage)
+        const total =
+          trackRef.current.getBoundingClientRect().bottom - e.clientY;
+        const percentage =
+          (total / trackRef.current.getBoundingClientRect().height) * 100;
+        newPercentage = Math.min(100, Math.max(0, percentage));
+        const perToPixels =
+          (newPercentage / 100) * trackRef.current.clientHeight;
+        setKnobPosition(trackRef.current.clientHeight - perToPixels);
       }
+
+      changeVolume(newPercentage);
     },
-    [changeVolume, direction]
+    [changeVolume, direction, setKnobPosition]
   );
 
   const handleDragStart = (event) => {
@@ -68,16 +73,16 @@ useEffect(() => {
       ...prevState,
       isDragging: true,
     }));
-    setNewVolume(event);
+    calculateVolume(event);
   };
 
   const handleDragMove = useCallback(
     (event) => {
       if (volumeState.isDragging) {
-        setNewVolume(event);
+        calculateVolume(event);
       }
     },
-    [setNewVolume, volumeState.isDragging]
+    [calculateVolume, volumeState.isDragging]
   );
 
   const handleDragEnd = useCallback(() => {
@@ -139,7 +144,7 @@ const VolumeKnob = styled.span`
       : `width: 10px; left:-1px; top:${volume.knobPosition}px;`};
   border-radius: 10px;
   border-color: black;
-
+  cursor: pointer;
   height: 10px;
 
   border: 1px solid black;

@@ -26,8 +26,8 @@ const VideoPlayer = () => {
 
       <Volume
         changeVolume={setVolume}
-        direction="horizontal"
-        defaultVolumeValue={videoRef}
+        direction="vertical"
+        currentVolume={videoRef}
       />
       <Play onClick={playPause}>play/pause</Play>
     </Container>
