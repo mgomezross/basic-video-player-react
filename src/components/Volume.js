@@ -142,7 +142,7 @@ const VolumeKnob = styled.span`
     direction === "horizontal"
       ? `width: 20px;  top: -1px; left:${volume.knobPosition}px;`
       : `width: 10px; left:-1px; top:${volume.knobPosition}px;`};
-  border-radius: 10px;
+  border-radius: 6px;
   border-color: black;
   cursor: pointer;
   height: 10px;

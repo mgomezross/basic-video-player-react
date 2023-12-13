@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState, useEffect } from "react";
 import { styled } from "styled-components";
 import Volume from "./Volume";
-
+import { useDragging } from "../hooks/useDragging";
 const VideoPlayer = () => {
   const videoRef = useRef();
   const timelineRef = useRef();
@@ -10,15 +10,11 @@ const VideoPlayer = () => {
   const [duration, setDuration] = useState(0);
   const animationFrameRef = useRef(null); // To store the animation frame reference
 
-  const updateTimeline = () => {
-    console.log('updateTimeline running')
-    setCurrentTime(videoRef.current.currentTime);
-    animationFrameRef.current = requestAnimationFrame(updateTimeline);
-  };
-
+ 
   const handleLoadedMetadata = () => {
     setDuration(videoRef.current.duration);
   };
+
 
   useEffect(() => {
     videoRef.current.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -26,6 +22,7 @@ const VideoPlayer = () => {
     return () => {
       videoRef.current.removeEventListener("loadedmetadata", handleLoadedMetadata);
       cancelAnimationFrame(animationFrameRef.current);
+     
     };
   }, []);
 
@@ -33,7 +30,11 @@ const VideoPlayer = () => {
     const volume = newVolume / 100;
     videoRef.current.volume = volume;
   }, []);
-
+  const updateTimeline = () => {
+    console.log('updateTimeline running')
+    setCurrentTime(videoRef.current.currentTime);
+    animationFrameRef.current = requestAnimationFrame(updateTimeline);
+  };
   const playPause = () => {
     if (isPlaying) {
       setisPlaying(false);
@@ -53,25 +54,54 @@ const VideoPlayer = () => {
     const minutes = Math.floor((time % 3600) / 60);
     const seconds = Math.floor(time % 60);
     const frames = String(Math.floor(time % 1 * 100)).padStart(2, "0");
-
+//If the value is less than 10, padStart adds a leading zero to make it two digits.
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
       2,
       "0"
     )}:${String(seconds).padStart(2, "0")}:${frames}`;
   };
 
-  const handleTimelineClick = (e) => {
+  const handleTimelineClick = useCallback((e) => {
+    
     const clickX = e.clientX - timelineRef.current.getBoundingClientRect().left;
     const timelineWidth = timelineRef.current.clientWidth;
+    
     const newTime = (clickX / timelineWidth) * duration;
+    if(newTime > duration || newTime < 0){
+      return
+    }
     videoRef.current.currentTime = newTime;
     setCurrentTime(newTime);
-  };
+  },[duration]);
 
+  const handleDragStart = useCallback((event) => {
+    handleTimelineClick(event)
+  },[handleTimelineClick]);
+
+  const handleDragMove = useCallback(
+    (event) => {
+      handleTimelineClick(event)
+    },
+    [handleTimelineClick]
+  );
+  const handleDragEnd = useCallback((event) => {
+    handleTimelineClick(event)
+  }, [handleTimelineClick]);
+
+  const { handleMouseDown } = useDragging({
+    handleDragStart,
+    handleDragMove,
+    handleDragEnd,
+  });
+ 
+
+  
+  
   return (
     <Container>
       <video ref={videoRef} src="https://www.w3schools.com/html/mov_bbb.mp4" />
-      <Timeline ref={timelineRef} onClick={handleTimelineClick}>
+      {/* TODO: ADD DRAG SERVICE TO TIMELINE */}
+      <Timeline ref={timelineRef} onMouseDown={handleMouseDown}>
         <TimelineProgress
           style={{ width: `${(currentTime / duration) * 100}%` }}
         />
@@ -106,6 +136,7 @@ const Timeline = styled.div`
   background-color: #ccc;
   cursor: pointer;
   position: relative;
+  overflow: hidden;
 `;
 
 const TimelineProgress = styled.div`
