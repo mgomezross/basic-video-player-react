@@ -12,12 +12,11 @@ const Volume = (props) => {
     knobPosition: 0,
     isDragging: false,
   });
- 
 
   useEffect(() => {
     //VERTICAL
     const perToPixels = currentVolume.current.volume * trackRef.current.clientY;
-   
+
     //HORIZONTAL
     // const  volume = currentVolume.current.volume * 100
     // const perToPixels =
@@ -116,11 +115,14 @@ const Volume = (props) => {
 };
 
 const VolumeContainer = styled.div`
+  position: absolute;
+  top: 74px;
+  right: 18px;
   ${({ direction }) =>
     direction === "horizontal"
       ? "width: 200px; height: 40px;"
-      : "width: 40px; height: 200px;"};
-  background-color: white;
+      : "width: 17px; height: 156px;"};
+
   margin: auto;
   display: flex;
   align-items: center;

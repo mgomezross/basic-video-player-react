@@ -9,20 +9,20 @@ const VideoPlayer = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const animationFrameRef = useRef(null); // To store the animation frame reference
-
- 
+  const [showVolume, setShowVolume] = useState(false);
   const handleLoadedMetadata = () => {
     setDuration(videoRef.current.duration);
   };
-
 
   useEffect(() => {
     videoRef.current.addEventListener("loadedmetadata", handleLoadedMetadata);
 
     return () => {
-      videoRef.current.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      videoRef.current.removeEventListener(
+        "loadedmetadata",
+        handleLoadedMetadata
+      );
       cancelAnimationFrame(animationFrameRef.current);
-     
     };
   }, []);
 
@@ -31,7 +31,7 @@ const VideoPlayer = () => {
     videoRef.current.volume = volume;
   }, []);
   const updateTimeline = () => {
-    console.log('updateTimeline running')
+    console.log("updateTimeline running");
     setCurrentTime(videoRef.current.currentTime);
     animationFrameRef.current = requestAnimationFrame(updateTimeline);
   };
@@ -53,83 +53,111 @@ const VideoPlayer = () => {
     const hours = Math.floor(time / 3600);
     const minutes = Math.floor((time % 3600) / 60);
     const seconds = Math.floor(time % 60);
-    const frames = String(Math.floor(time % 1 * 100)).padStart(2, "0");
-//If the value is less than 10, padStart adds a leading zero to make it two digits.
+    const frames = String(Math.floor((time % 1) * 100)).padStart(2, "0");
+    //If the value is less than 10, padStart adds a leading zero to make it two digits.
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
       2,
       "0"
     )}:${String(seconds).padStart(2, "0")}:${frames}`;
   };
 
-  const handleTimelineClick = useCallback((e) => {
-    
-    const clickX = e.clientX - timelineRef.current.getBoundingClientRect().left;
-    const timelineWidth = timelineRef.current.clientWidth;
-    
-    const newTime = (clickX / timelineWidth) * duration;
-    if(newTime > duration || newTime < 0){
-      return
-    }
-    videoRef.current.currentTime = newTime;
-    setCurrentTime(newTime);
-  },[duration]);
+  const handleTimelineClick = useCallback(
+    (e) => {
+      const clickX =
+        e.clientX - timelineRef.current.getBoundingClientRect().left;
+      const timelineWidth = timelineRef.current.clientWidth;
 
-  const handleDragStart = useCallback((event) => {
-    handleTimelineClick(event)
-  },[handleTimelineClick]);
-
-  const handleDragMove = useCallback(
+      const newTime = (clickX / timelineWidth) * duration;
+      if (newTime > duration || newTime < 0) {
+        return;
+      }
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    },
+    [duration]
+  );
+  const handleShowVolume = () => {
+    setShowVolume((prev) => !prev);
+  };
+  const handleDragStart = useCallback(
     (event) => {
-      handleTimelineClick(event)
+      handleTimelineClick(event);
     },
     [handleTimelineClick]
   );
-  const handleDragEnd = useCallback((event) => {
-    handleTimelineClick(event)
-  }, [handleTimelineClick]);
+
+  const handleDragMove = useCallback(
+    (event) => {
+      handleTimelineClick(event);
+    },
+    [handleTimelineClick]
+  );
+  const handleDragEnd = useCallback(
+    (event) => {
+      handleTimelineClick(event);
+    },
+    [handleTimelineClick]
+  );
 
   const { handleMouseDown } = useDragging({
     handleDragStart,
     handleDragMove,
     handleDragEnd,
   });
- 
 
-  
-  
   return (
-    <Container>
-      <video ref={videoRef} src="https://www.w3schools.com/html/mov_bbb.mp4" />
-      {/* TODO: ADD DRAG SERVICE TO TIMELINE */}
-      <Timeline ref={timelineRef} onMouseDown={handleMouseDown}>
-        <TimelineProgress
-          style={{ width: `${(currentTime / duration) * 100}%` }}
+    <>
+      <Container>
+        <Player
+          ref={videoRef}
+          src="https://www.w3schools.com/html/mov_bbb.mp4"
         />
-      </Timeline>
-      <TimeCode>{formatTime(currentTime)}</TimeCode>
-      <Play onClick={playPause}>{isPlaying ? "Pause" : "Play"}</Play>
+        <Timeline ref={timelineRef} onMouseDown={handleMouseDown}>
+          <TimelineProgress
+            style={{ width: `${(currentTime / duration) * 100}%` }}
+          />
+        </Timeline>
+        <ControlsContainer>
+          <TimeCode>{formatTime(currentTime)}</TimeCode>
 
-      <Volume
-        changeVolume={setVolume}
-        direction="vertical"
-        currentVolume={videoRef}
-      />
-    </Container>
+          <Play onClick={playPause}>{isPlaying ? "Pause" : "Play"}</Play>
+          <ShowVolume onClick={handleShowVolume}>V</ShowVolume>
+          {showVolume && (
+            <Volume
+              changeVolume={setVolume}
+              direction="vertical"
+              currentVolume={videoRef}
+            />
+          )}
+        </ControlsContainer>
+      </Container>
+    </>
   );
 };
-
+const Player = styled.video`
+  width: 100%;
+`;
 const Container = styled.div`
   display: flex;
+  position: relative;
   flex-direction: column;
   justify-content: center;
   align-items: start;
+  width: 400px;
 `;
-
+const ControlsContainer = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+`;
 const Play = styled.button`
   width: 78px;
   height: 39px;
 `;
-
+const ShowVolume = styled.button`
+  width: 50px;
+  height: 39px;
+`;
 const Timeline = styled.div`
   width: 100%;
   height: 10px;
