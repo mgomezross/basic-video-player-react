@@ -149,14 +149,16 @@ const ControlsContainer = styled.div`
   width: 100%;
   display: flex;
   justify-content: space-between;
+  background-color: #51596b;
+  align-items: center;
 `;
 const Play = styled.button`
-  width: 78px;
-  height: 39px;
+     width: 50px;
+    height: 30px;
 `;
 const ShowVolume = styled.button`
-  width: 50px;
-  height: 39px;
+      width: 50px;
+    height: 30px;
 `;
 const Timeline = styled.div`
   width: 100%;
@@ -169,7 +171,7 @@ const Timeline = styled.div`
 
 const TimelineProgress = styled.div`
   height: 100%;
-  background-color: red;
+  background-color: #4875ce;
 `;
 const TimeCode = styled.div`
   margin-left: 10px;
