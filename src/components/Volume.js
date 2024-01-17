@@ -91,7 +91,7 @@ const Volume = (props) => {
     }));
   }, []);
 
-  const { handleMouseDown, clearEventListeners } = useDragging({
+  const { handleMouseDown } = useDragging({
     handleDragStart,
     handleDragMove,
     handleDragEnd,
