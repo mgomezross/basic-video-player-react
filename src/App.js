@@ -1,5 +1,6 @@
 
 import "./App.css";
+import Timeline from "./components/Timeline";
 import VideoPlayer from "./components/VideoPlayer";
 import Volume from "./components/Volume";
 function App() {
@@ -12,6 +13,7 @@ function App() {
      {/* <Volume direction={'horizontal'}/>
      <Volume direction={'vertical'}/> */}
      <VideoPlayer/>
+     <Timeline/>
       </>
       </header>
     </div>

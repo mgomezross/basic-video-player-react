@@ -1,8 +1,10 @@
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { styled } from "styled-components";
-import Volume from "./Volume";
 import { useDragging } from "../hooks/useDragging";
+import Volume from "./Volume";
+
 const VideoPlayer = () => {
+  
   const videoRef = useRef();
   const timelineRef = useRef();
   const [isPlaying, setisPlaying] = useState(false);
